@@ -1,6 +1,8 @@
 module com.onlineshop.project1 {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.sql;
+    requires org.postgresql.jdbc;
 
 
     opens com.onlineshop.project1 to javafx.fxml;
