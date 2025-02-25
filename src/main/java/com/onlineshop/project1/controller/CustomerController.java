@@ -74,6 +74,10 @@ public class CustomerController {
     @FXML
     void onFetch(ActionEvent event) {
 
+
+
+
+
     }
 
     @FXML
@@ -92,7 +96,7 @@ public class CustomerController {
     }
 
 
-@FXML
+    @FXML
     void onSave(ActionEvent event) {
 
     }
