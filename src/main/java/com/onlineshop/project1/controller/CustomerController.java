@@ -14,6 +14,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import java.util.List;
+
 
 public class CustomerController {
 
@@ -156,14 +158,99 @@ public class CustomerController {
         newStage.show();
     }
 
-
+    /***
+     *
+     * @param event
+     *
+     * daha sonra bakılacak validasyon hataları kısmına.
+     */
     @FXML
     void onSave(ActionEvent event) {
+        String customerName = nameText.getText().trim();
+        String customerAddress = addressText.getText().trim();
+        String customerPhoneNumber = telephoneText.getText().strip();
+
+        StringBuilder errorMessages = new StringBuilder();
+
+        if (customerName.isEmpty()) {
+            errorMessages.append("Müşteri adı boş olamaz!\n");
+        }
+        if (customerAddress.isEmpty()) {
+            errorMessages.append("Adres boş olamaz!\n");
+        }
+        if (!customerPhoneNumber.matches("\\d+")) {
+            errorMessages.append("Telefon numarası sadece rakamlardan oluşmalıdır!\n");
+        }
+
+        if (!errorMessages.isEmpty()) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Hata!");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText(errorMessages.toString());
+            errorAlert.showAndWait();
+            return;
+        }
+
+        boolean isSuccess = customerRepository.saveCustomer(customerName,customerAddress,customerPhoneNumber);
+
+        if(isSuccess){
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setContentText("User has been inserted successfully.");
+            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+            successAlert.getDialogPane().setPrefSize(400, 150);
+            successAlert.show();
+        }
+
+
 
     }
 
+
+    /***
+     *
+     * @param event
+     *
+     * daha sonra bakılacak validasyon hataları kısmına.
+     */
     @FXML
     void onUpdate(ActionEvent event) {
+        int customerId = Integer.parseInt(customerIdText.getText());
+        String customerName = nameText.getText();
+        String customerAddress = addressText.getText();
+        String customerPhoneNumber = telephoneText.getText();
+
+        StringBuilder errorMessages = new StringBuilder();
+
+        if (customerName == null || customerName.trim().isEmpty()) {
+            errorMessages.append("Müşteri adı boş olamaz!\n");
+        }
+        if (customerAddress == null || customerAddress.trim().isEmpty()) {
+            errorMessages.append("Adres boş olamaz!\n");
+        }
+        if (customerPhoneNumber == null || !customerPhoneNumber.matches("\\d+")) {
+            errorMessages.append("Telefon numarası sadece rakamlardan oluşmalıdır!\n");
+        }
+
+        if (!errorMessages.isEmpty()) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Hata!");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText(errorMessages.toString());
+            errorAlert.showAndWait();
+            return;
+        }
+
+        boolean isSuccess = customerRepository.updateCustomer(customerId,customerName,customerAddress,customerPhoneNumber);
+
+        if(isSuccess){
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setContentText("User has been inserted successfully.");
+            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+            successAlert.getDialogPane().setPrefSize(400, 150);
+            successAlert.show();
+        }
+
+
 
     }
 
