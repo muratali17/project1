@@ -1,5 +1,7 @@
 package com.onlineshop.project1;
 
+import com.onlineshop.project1.entity.Customer;
+import com.onlineshop.project1.repository.CustomerRepository;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -20,6 +22,9 @@ public class HelloApplication extends Application {
 
 
     public static void main(String[] args) {
+
+
+
         launch();
     }
 }

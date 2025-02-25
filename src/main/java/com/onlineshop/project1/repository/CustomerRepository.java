@@ -10,7 +10,6 @@ import java.sql.SQLException;
 
 public class CustomerRepository {
 
-
     public Customer findById(int customerId) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -33,7 +32,6 @@ public class CustomerRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("olm bura bak");
             System.err.println(e.getMessage());
         } finally { // her halükarda finally blogu calisir ve kaynaklar kapanir.
             try {
@@ -63,15 +61,95 @@ public class CustomerRepository {
             stmt = conn.prepareStatement(deleteCustomerQuery);
             stmt.setInt(1,customerId);
 
-            int effectedRowCount = stmt.executeUpdate();        //delete update insert islemlerinde executeUpdate kullan,
-                                                                // select isleminde executeQuery Kullan.
+            int effectedRowCount = stmt.executeUpdate();
+
             if(effectedRowCount == 1) isSuccess = true;
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                System.err.println("Error while closing resources: " + e.getMessage());
+            }
         }
 
         return isSuccess;
+    }
+
+    public boolean saveCustomer(String customerName, String customerAddress, String customerPhoneNumber) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        boolean isSuccess = false;
+
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            String saveCustomer = "INSERT INTO customers (customer_name, customer_address, customer_phone_number) VALUES (?,?,?)";
+
+            stmt = conn.prepareStatement(saveCustomer);
+            stmt.setString(1, customerName);
+            stmt.setString(2, customerAddress);
+            stmt.setString(3, customerPhoneNumber);
+
+            int effectedRowCount = stmt.executeUpdate();
+
+            if(effectedRowCount == 1) isSuccess = true;
+
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                System.err.println("Error while closing resources: " + e.getMessage());
+            }
+        }
+
+
+        return isSuccess;
+    }
+
+    public boolean updateCustomer(int customerId,String customerName, String customerAddress, String customerPhoneNumber) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        boolean isSuccess = false;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            String updateCustomer = "UPDATE customers SET customer_name = ?, customer_address = ?, customer_phone_number = ? WHERE customer_id = ?";
+
+            stmt = conn.prepareStatement(updateCustomer);
+
+            // Parametreleri PreparedStatement ile ayarlıyoruz
+            stmt.setString(1, customerName);
+            stmt.setString(2, customerAddress);
+            stmt.setString(3, customerPhoneNumber);
+            stmt.setInt(4, customerId);
+
+
+            int effectedRowCount = stmt.executeUpdate();
+
+            if(effectedRowCount == 1) isSuccess = true;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                System.err.println("Error while closing resources: " + e.getMessage());
+            }
+        }
+
+
+        return isSuccess;
+
     }
 
 
