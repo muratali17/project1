@@ -13,7 +13,7 @@ public class DatabaseConnection {
     private static final String DB_PASS = "5591564";
 
     public static Connection getConnection() throws SQLException {
-        if (connection == null) {
+        if (connection == null || connection.isClosed()) {
             try {
                 Class.forName(DB_DRIVER);
                 connection = DriverManager.getConnection(
@@ -28,6 +28,8 @@ public class DatabaseConnection {
         return connection;
     }
 
+
+    // simdilik gerek yok ama kalsin.
     public static void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {

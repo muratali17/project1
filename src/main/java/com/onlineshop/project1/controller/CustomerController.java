@@ -1,18 +1,19 @@
 package com.onlineshop.project1.controller;
 
 import com.onlineshop.project1.HelloApplication;
+import com.onlineshop.project1.entity.Customer;
+import com.onlineshop.project1.repository.CustomerRepository;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 
 public class CustomerController {
 
@@ -61,6 +62,9 @@ public class CustomerController {
     @FXML
     private Button updateBtn;
 
+
+    private final CustomerRepository customerRepository = new CustomerRepository();
+
     @FXML
     void onClose(ActionEvent event) {
 
@@ -69,29 +73,86 @@ public class CustomerController {
     @FXML
     void onDelete(ActionEvent event) {
 
+        if(customerIdText.getText().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Enter a integer number to delete customer!");
+            alert.show();
+            return;
+        }
+        int customerId;
+        try {
+            customerId = Integer.parseInt(customerIdText.getText());
+        }catch (NumberFormatException ex){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Customer Id must be integer!");
+            alert.show();
+            return;
+        }
+
+        Customer customer = customerRepository.findById(customerId);
+
+        if (customer == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(String.format("There is no such a user in the system with the id: %s", customerId));
+            alert.show();
+            return;
+        }
+
+        boolean isSuccess = customerRepository.deleteCustomerById(customerId);
+
+        if(isSuccess){
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setContentText(String.format("User with the id: %s has been deleted successfully.",customerId));
+            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+            successAlert.getDialogPane().setPrefSize(400, 150);
+            successAlert.show();
+        }
+
+
     }
 
     @FXML
     void onFetch(ActionEvent event) {
 
+        if(customerIdText.getText().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Enter a integer number to get customer!");
+            alert.show();
+            return;
+        }
+        int customerId;
+        try {
+             customerId = Integer.parseInt(customerIdText.getText());
+        }catch (NumberFormatException ex){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Customer Id must be integer!");
+            alert.show();
+            return;
+        }
 
+        Customer customer = customerRepository.findById(customerId);
 
-
+        if(customer == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Emp not found!");
+            alert.show();
+        }else{
+            nameText.setText(customer.getCustomerName());
+            addressText.setText(customer.getCustomerAddress());
+            telephoneText.setText(customer.getCustomerPhoneNumber());
+        }
 
     }
 
     @FXML
     void onProduct(ActionEvent event) throws Exception {
-        // 1. Load the FXML file for the new window
         FXMLLoader loader = new FXMLLoader(HelloApplication.class.getResource("product-view.fxml"));
         Parent root = loader.load();
 
-        // 2. Create a new Stage (window)
         Stage newStage = new Stage();
         newStage.setScene(new Scene(root));
         newStage.setTitle("Product View");
 
-        // 3. Show the new window
         newStage.show();
     }
 
