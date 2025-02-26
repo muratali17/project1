@@ -2,7 +2,6 @@ package com.onlineshop.project1.repository;
 
 import com.onlineshop.project1.entity.Customer;
 import com.onlineshop.project1.util.DatabaseConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -75,7 +74,6 @@ public class CustomerRepository {
                 System.err.println("Error while closing resources: " + e.getMessage());
             }
         }
-
         return isSuccess;
     }
 
@@ -151,8 +149,6 @@ public class CustomerRepository {
         return isSuccess;
 
     }
-
-
 
 
 }
