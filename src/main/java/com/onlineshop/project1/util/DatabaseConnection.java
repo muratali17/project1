@@ -10,7 +10,7 @@ public class DatabaseConnection {
     private static final String DB_DRIVER = "org.postgresql.Driver";
     private static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/JavaFXProject";
     private static final String DB_USER = "postgres";
-    private static final String DB_PASS = "231104";
+    private static final String DB_PASS = "123456789";
 
     public static Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
