@@ -172,14 +172,14 @@ public class CustomerController {
 
         StringBuilder errorMessages = new StringBuilder();
 
-        if (customerName.isEmpty()) {
-            errorMessages.append("Customer name can not be empty!\n");
+        if (customerName.isEmpty() || !customerName.matches("^[a-zA-Z ]+$")) {
+            errorMessages.append("Customer name should only letter and  can not be empty!\n");
         }
-        if (customerAddress.isEmpty()) {
-            errorMessages.append("Address can not be empty!\n");
+        if (customerAddress.isEmpty() || !customerAddress.matches("^[a-zA-Z0-9 ,.\\-]{10,}$") ) {
+            errorMessages.append("Address should be least 10 characters and can not be empty!\n");
         }
-        if (!customerPhoneNumber.matches("\\d+")) {
-            errorMessages.append("Phone Number should only contain numbers and can not be empty\n");
+        if (!customerPhoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
+            errorMessages.append("Phone Number should only in xxx-xxx-xxxx format and can not be empty!\n");
         }
 
         if (!errorMessages.isEmpty()) {
