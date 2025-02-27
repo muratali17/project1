@@ -136,7 +136,7 @@ public class CustomerController {
 
         if(customer == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Emp not found!");
+            alert.setContentText("Customer not found!");
             alert.show();
         }else{
             nameText.setText(customer.getCustomerName());
@@ -172,14 +172,14 @@ public class CustomerController {
 
         StringBuilder errorMessages = new StringBuilder();
 
-        if (customerName.isEmpty()) {
-            errorMessages.append("Müşteri adı boş olamaz!\n");
+        if (customerName.isEmpty() || !customerName.matches("^[a-zA-Z ]+$")) {
+            errorMessages.append("Customer name should only letter and  can not be empty!\n");
         }
-        if (customerAddress.isEmpty()) {
-            errorMessages.append("Adres boş olamaz!\n");
+        if (customerAddress.isEmpty() || !customerAddress.matches("^[a-zA-Z0-9 ,.\\-]{10,}$") ) {
+            errorMessages.append("Address should be least 10 characters and can not be empty!\n");
         }
-        if (!customerPhoneNumber.matches("\\d+")) {
-            errorMessages.append("Telefon numarası sadece rakamlardan oluşmalıdır!\n");
+        if (!customerPhoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
+            errorMessages.append("Phone Number should only in xxx-xxx-xxxx format and can not be empty!\n");
         }
 
         if (!errorMessages.isEmpty()) {
@@ -222,18 +222,18 @@ public class CustomerController {
         StringBuilder errorMessages = new StringBuilder();
 
         if (customerName == null || customerName.trim().isEmpty()) {
-            errorMessages.append("Müşteri adı boş olamaz!\n");
+            errorMessages.append("Customer name can not be empty!\n");
         }
         if (customerAddress == null || customerAddress.trim().isEmpty()) {
-            errorMessages.append("Adres boş olamaz!\n");
+            errorMessages.append("Address can not be empty!\n");
         }
         if (customerPhoneNumber == null || !customerPhoneNumber.matches("\\d+")) {
-            errorMessages.append("Telefon numarası sadece rakamlardan oluşmalıdır!\n");
+            errorMessages.append("Phone Number should only contain numbers and can not be empty\n\n");
         }
 
         if (!errorMessages.isEmpty()) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Hata!");
+            errorAlert.setTitle("Error!");
             errorAlert.setHeaderText(null);
             errorAlert.setContentText(errorMessages.toString());
             errorAlert.showAndWait();
