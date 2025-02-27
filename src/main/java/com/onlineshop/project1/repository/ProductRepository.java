@@ -12,6 +12,41 @@ import java.sql.SQLException;
 
 public class ProductRepository {
 
+    public static boolean saveProduct(String productName, String supplierName, BigDecimal productPrice) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        boolean isSuccess = false;
+
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            String saveProduct = "INSERT INTO products (product_name, supplier_name, product_price) VALUES (?,?,?)";
+
+            stmt = conn.prepareStatement(saveProduct);
+            stmt.setString(1, productName);
+            stmt.setString(2, supplierName);
+            stmt.setBigDecimal(3, productPrice);
+
+            int effectedRowCount = stmt.executeUpdate();
+
+            if(effectedRowCount == 1) isSuccess = true;
+
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                System.err.println("Error while closing resources: " + e.getMessage());
+            }
+        }
+
+
+        return isSuccess;
+    }
+
     public Product findById(int productId) {
         Connection conn = null;
         PreparedStatement stmt = null;

@@ -69,7 +69,8 @@ public class CustomerController {
 
     @FXML
     void onClose(ActionEvent event) {
-
+        Stage stage = (Stage) closeBtn.getScene().getWindow();
+        stage.close();
     }
 
     @FXML

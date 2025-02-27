@@ -1,16 +1,21 @@
 package com.onlineshop.project1.controller;
 
 
+import com.onlineshop.project1.HelloApplication;
 import com.onlineshop.project1.entity.Customer;
 import com.onlineshop.project1.entity.Product;
 import com.onlineshop.project1.repository.ProductRepository;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 import java.math.BigDecimal;
 
@@ -58,11 +63,15 @@ public class ProductController {
     @FXML
     private Button updateBtn;
 
+    @FXML
+    private Button customerBtn;
+
     private final ProductRepository productRepository = new ProductRepository();
 
     @FXML
     void onClose(ActionEvent event) {
-        Platform.exit();
+        Stage stage = (Stage) closeBtn.getScene().getWindow();
+        stage.close();
     }
 
     @FXML
@@ -139,8 +148,44 @@ public class ProductController {
 
     @FXML
     void onSave(ActionEvent event) {
+        String productName = nameText.getText().trim();
+        String supplierName = supplierText.getText().trim();
+        String productPrice = priceText.getText().strip();
+        BigDecimal productPriceInt = new BigDecimal(productPrice);
 
+        StringBuilder errorMessages = new StringBuilder();
+
+        if(productName.isEmpty()){
+            errorMessages.append("Product name cannot be empty!\n");
+        }
+        if(supplierName.isEmpty()){
+            errorMessages.append("Supplier name cannot be empty!\n");
+        }
+        if (!productPrice.matches("\\d+")) {
+            errorMessages.append("Product price cannot be a string!\n");
+        }
+
+        if(!errorMessages.isEmpty()){
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error!");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText(errorMessages.toString());
+            errorAlert.showAndWait();
+            return;
+        }
+
+        boolean isSuccess = ProductRepository.saveProduct(productName,supplierName,productPriceInt);
+
+        if(isSuccess){
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setContentText("User has been inserted successfully.");
+            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+            successAlert.getDialogPane().setPrefSize(400, 150);
+            successAlert.show();
+        }
     }
+
+
 
     @FXML
     void onUpdate(ActionEvent event) {
@@ -180,6 +225,17 @@ public class ProductController {
             successAlert.show();
         }
 
+    }
+    @FXML
+    void onCustomer(ActionEvent event) throws Exception {
+        FXMLLoader loader = new FXMLLoader(HelloApplication.class.getResource("customer-view.fxml"));
+        Parent root = loader.load();
+
+        Stage newStage = new Stage();
+        newStage.setScene(new Scene(root));
+        newStage.setTitle("Customer View");
+
+        newStage.show();
     }
 
 }
