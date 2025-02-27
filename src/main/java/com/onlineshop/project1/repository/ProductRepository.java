@@ -10,9 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ProductRepository {
+public class  ProductRepository {
 
-    public static boolean saveProduct(String productName, String supplierName, BigDecimal productPrice) {
+    public boolean saveProduct(int productId, String productName, String supplierName, BigDecimal productPrice) {
         Connection conn = null;
         PreparedStatement stmt = null;
         boolean isSuccess = false;
@@ -20,12 +20,13 @@ public class ProductRepository {
 
         try {
             conn = DatabaseConnection.getConnection();
-            String saveProduct = "INSERT INTO products (product_name, supplier_name, product_price) VALUES (?,?,?)";
+            String saveProduct = "INSERT INTO products (product_id,product_name, supplier_name, product_price) VALUES (?,?,?,?)";
 
             stmt = conn.prepareStatement(saveProduct);
-            stmt.setString(1, productName);
-            stmt.setString(2, supplierName);
-            stmt.setBigDecimal(3, productPrice);
+            stmt.setInt(1, productId);
+            stmt.setString(2, productName);
+            stmt.setString(3, supplierName);
+            stmt.setBigDecimal(4, productPrice);
 
             int effectedRowCount = stmt.executeUpdate();
 
@@ -113,20 +114,29 @@ public class ProductRepository {
         return isSuccess;
     }
 
-    public boolean updateProduct(int productId, String productName, String productSupplier, String productPrice) {
+    public boolean updateProduct(int productId, String productName, String productSupplier, BigDecimal productPrice) {
         Connection conn = null;
         PreparedStatement stmt = null;
         boolean isSuccess = false;
 
         try {
+
+            if(!isUpdated(productId, productName, productSupplier, productPrice)){
+                throw new RuntimeException("You didnt update the product");
+            }
+
             conn = DatabaseConnection.getConnection();
-            String updateProductQuery = "UPDATE products SET product_name = ?, suplier_name = ?, product_price = ? WHERE product_id = ?";
+
+
+            String updateProductQuery = "UPDATE products SET product_name = ?, supplier_name = ?, product_price = ? WHERE product_id = ?";
 
             stmt = conn.prepareStatement(updateProductQuery);
 
+
+
             stmt.setString(1, productName);
             stmt.setString(2, productSupplier);
-            stmt.setString(3, productPrice);
+            stmt.setBigDecimal(3, productPrice);
             stmt.setInt(4, productId);
 
             int affectedRowCount = stmt.executeUpdate();
@@ -134,6 +144,8 @@ public class ProductRepository {
             if (affectedRowCount > 0) {
                 isSuccess = true;
             }
+
+
 
         } catch (SQLException e) {
             System.err.println("SQL Error: " + e.getMessage());
@@ -150,4 +162,30 @@ public class ProductRepository {
     }
 
 
+    public boolean isUpdated(int productId, String productName, String productSupplier, BigDecimal productPrice ) throws SQLException {
+
+        boolean isChanged = false;
+
+        Product product = findById(productId);
+
+        if(product == null){
+            throw new SQLException("There is no product with id " + productId);
+        }
+
+        if(!product.getProductName().equals(productName)){
+            isChanged = true;
+            return isChanged;
+        }
+        if(!product.getSupplierName().equals(productSupplier)){
+            isChanged = true;
+            return isChanged;
+        }
+        if(!product.getProductPrice().equals(productPrice)){
+            isChanged = true;
+            return isChanged;
+        }
+
+        return isChanged;
+
+    }
 }

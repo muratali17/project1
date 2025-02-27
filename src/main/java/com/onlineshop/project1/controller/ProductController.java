@@ -78,7 +78,7 @@ public class ProductController {
     void onDelete(ActionEvent event) {
         if(productIdText.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Enter a integer number to delete customer!");
+            alert.setContentText("Enter a integer number to delete product!");
             alert.show();
             return;
         }
@@ -96,7 +96,7 @@ public class ProductController {
 
         if (product == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(String.format("There is no such a user in the system with the id: %s", productId));
+            alert.setContentText(String.format("There is no such a product in the system with the id: %s", productId));
             alert.show();
             return;
         }
@@ -118,7 +118,7 @@ public class ProductController {
     void onFetch(ActionEvent event) {
         if(productIdText.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Enter a integer number to get customer!");
+            alert.setContentText("Enter an integer number to product id to get product!");
             alert.show();
             return;
         }
@@ -127,7 +127,7 @@ public class ProductController {
             productId = Integer.parseInt(productIdText.getText());
         }catch (NumberFormatException ex){
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Customer Id must be integer!");
+            alert.setContentText("Product Id must be integer!");
             alert.show();
             return;
         }
@@ -148,21 +148,26 @@ public class ProductController {
 
     @FXML
     void onSave(ActionEvent event) {
+        String productId = productIdText.getText();
         String productName = nameText.getText().trim();
         String supplierName = supplierText.getText().trim();
         String productPrice = priceText.getText().strip();
-        BigDecimal productPriceInt = new BigDecimal(productPrice);
+
 
         StringBuilder errorMessages = new StringBuilder();
 
-        if(productName.isEmpty()){
-            errorMessages.append("Product name cannot be empty!\n");
+        if(productId.isBlank() || productId.trim().isEmpty()) {
+            errorMessages.append("Product Id can not be empty\n");
         }
-        if(supplierName.isEmpty()){
-            errorMessages.append("Supplier name cannot be empty!\n");
+
+        if (productName.isBlank() || productName.trim().isEmpty()) {
+            errorMessages.append("Product name can not be empty\n");
         }
-        if (!productPrice.matches("\\d+")) {
-            errorMessages.append("Product price cannot be a string!\n");
+        if (supplierName.isBlank() || supplierName.trim().isEmpty()) {
+            errorMessages.append("Supplier name can not be empty\n");
+        }
+        if (productPrice.isBlank() || !productPrice.matches("\\d+")) {
+            errorMessages.append("Product price should only contain numbers and can not be empty\n");
         }
 
         if(!errorMessages.isEmpty()){
@@ -174,14 +179,23 @@ public class ProductController {
             return;
         }
 
-        boolean isSuccess = ProductRepository.saveProduct(productName,supplierName,productPriceInt);
+        BigDecimal productPriceBigDecimal = new BigDecimal(productPrice);
+        int productIdInt = Integer.parseInt(productId);
+
+        boolean isSuccess = productRepository.saveProduct(productIdInt,productName,supplierName,productPriceBigDecimal);
 
         if(isSuccess){
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("User has been inserted successfully.");
+            successAlert.setContentText("Product has been inserted successfully.");
             successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
             successAlert.getDialogPane().setPrefSize(400, 150);
             successAlert.show();
+        }
+        else{
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setContentText("Something went wrong, Check if there is already a product with the id: "+productId);
+            errorAlert.getDialogPane().setPrefSize(450, 150);
+            errorAlert.show();
         }
     }
 
@@ -189,13 +203,16 @@ public class ProductController {
 
     @FXML
     void onUpdate(ActionEvent event) {
-        int productId = Integer.parseInt(productIdText.getText());
+        String productId = productIdText.getText();
         String productName = nameText.getText();
         String supplierName = supplierText.getText();
         String productPrice = priceText.getText();
 
         StringBuilder errorMessages = new StringBuilder();
 
+        if(productId.isBlank() || productId.trim().isEmpty()) {
+            errorMessages.append("Product Id can not be empty\n");
+        }
         if (productName == null || productName.trim().isEmpty()) {
             errorMessages.append("Product name can not be empty\n");
         }
@@ -215,14 +232,33 @@ public class ProductController {
             return;
         }
 
-        boolean isSuccess = productRepository.updateProduct(productId,productName,supplierName,productPrice);
+        BigDecimal productPriceBigDecimal = new BigDecimal(productPrice);
+        int productIdInt = Integer.parseInt(productId);
 
-        if(isSuccess){
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("User has been inserted successfully.");
-            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
+
+        try{
+            boolean isSuccess = productRepository.updateProduct(productIdInt,productName,supplierName,productPriceBigDecimal);
+
+            if(isSuccess){
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText("Product has been updated successfully.");
+                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+            }
+
+            else{
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setContentText("Something went wrong, Check if there is a product with the id: "+productId);
+                errorAlert.getDialogPane().setPrefSize(400, 150);
+                errorAlert.show();
+            }
+        }
+        catch (RuntimeException e){
+            Alert errorAlert = new Alert(Alert.AlertType.WARNING);
+            errorAlert.setContentText(e.getMessage());
+            errorAlert.getDialogPane().setPrefSize(400, 150);
+            errorAlert.show();
         }
 
     }
