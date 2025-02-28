@@ -1,8 +1,8 @@
 package com.onlineshop.project1.repository;
 
-import com.onlineshop.project1.entity.Customer;
 import com.onlineshop.project1.entity.Product;
 import com.onlineshop.project1.util.DatabaseConnection;
+
 
 import java.math.BigDecimal;
 import java.sql.Connection;

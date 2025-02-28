@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CustomerRepository {
 
@@ -35,7 +37,7 @@ public class CustomerRepository {
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-        } finally { // her halükarda finally blogu calisir ve kaynaklar kapanir.
+        } finally {
             try {
                 if (resultSet != null) resultSet.close();
                 if (stmt != null) stmt.close();
@@ -44,7 +46,6 @@ public class CustomerRepository {
                 System.err.println("Error while closing resources: " + e.getMessage());
             }
         }
-
         return customer;
     }
 
@@ -53,7 +54,6 @@ public class CustomerRepository {
     public boolean deleteCustomerById(int customerId){
         Connection conn = null;
         PreparedStatement stmt = null;
-        Customer customer = null;
         boolean isSuccess = false;
 
         try {
@@ -85,7 +85,6 @@ public class CustomerRepository {
         PreparedStatement stmt = null;
         boolean isSuccess = false;
 
-
         try {
             conn = DatabaseConnection.getConnection();
             String saveCustomer = "INSERT INTO customers (customer_id,customer_name, customer_address, customer_phone_number) VALUES (?,?,?,?)";
@@ -100,12 +99,9 @@ public class CustomerRepository {
 
             if(effectedRowCount == 1) isSuccess = true;
 
-
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-        }
-
-        finally {
+        }finally {
             try {
                 if (stmt != null) stmt.close();
                 if (conn != null) conn.close();
@@ -114,9 +110,11 @@ public class CustomerRepository {
             }
         }
 
-
         return isSuccess;
     }
+
+
+
 
     public boolean updateCustomer(int customerId,String customerName, String customerAddress, String customerPhoneNumber) {
         Connection conn = null;
@@ -124,22 +122,15 @@ public class CustomerRepository {
         boolean isSuccess = false;
 
         try {
-
-            if(!isUpdated(customerId, customerName, customerAddress, customerPhoneNumber)) {
-                throw new RuntimeException("You didnt update the product");
-            }
-
             conn = DatabaseConnection.getConnection();
             String updateCustomer = "UPDATE customers SET customer_name = ?, customer_address = ?, customer_phone_number = ? WHERE customer_id = ?";
 
             stmt = conn.prepareStatement(updateCustomer);
 
-            // Parametreleri PreparedStatement ile ayarlıyoruz
             stmt.setString(1, customerName);
             stmt.setString(2, customerAddress);
             stmt.setString(3, customerPhoneNumber);
             stmt.setInt(4, customerId);
-
 
             int effectedRowCount = stmt.executeUpdate();
 
@@ -155,37 +146,43 @@ public class CustomerRepository {
                 System.err.println("Error while closing resources: " + e.getMessage());
             }
         }
-
-
         return isSuccess;
-
     }
 
-    public boolean isUpdated(int customerId, String customerName, String customerAddress, String customerPhoneNumber ) throws SQLException {
 
-        boolean isChanged = false;
 
-        Customer customer = findById(customerId);
+    public List<String> getAllCustomerPhoneNumbers() {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet resultSet = null;
+        List<String> phoneNumbers = new ArrayList<>();
 
-        if(customer == null){
-            throw new SQLException("There is no customer with id " + customerId);
+        try {
+            conn = DatabaseConnection.getConnection();
+            String getPhoneNumbersQuery = "SELECT customer_phone_number FROM customers";
+            stmt = conn.prepareStatement(getPhoneNumbersQuery);
+            resultSet = stmt.executeQuery();
+
+            while (resultSet.next()) {
+                phoneNumbers.add(resultSet.getString("customer_phone_number"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        } finally {
+            try {
+                if (resultSet != null) resultSet.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                System.err.println("Error while closing resources: " + e.getMessage());
+            }
         }
-
-        if(!customer.getCustomerName().equals(customerName)){
-            isChanged = true;
-            return isChanged;
-        }
-        if(!customer.getCustomerAddress().equals(customerAddress)){
-            isChanged = true;
-            return isChanged;
-        }
-        if(!customer.getCustomerPhoneNumber().equals(customerPhoneNumber)){
-            isChanged = true;
-            return isChanged;
-        }
-
-        return isChanged;
-
+        return phoneNumbers;
     }
+
+
+
+
 
 }
