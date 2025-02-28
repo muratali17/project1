@@ -87,7 +87,7 @@ public class ProductController {
             productId = Integer.parseInt(productIdText.getText());
         }catch (NumberFormatException ex){
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Customer Id must be integer!");
+            alert.setContentText("Product Id must be integer!");
             alert.show();
             return;
         }
@@ -156,8 +156,8 @@ public class ProductController {
 
         StringBuilder errorMessages = new StringBuilder();
 
-        if(productId.isBlank() || productId.trim().isEmpty()) {
-            errorMessages.append("Product Id can not be empty\n");
+        if(productId.isBlank() || !productId.matches("\\d+")) {
+            errorMessages.append("Product Id can not be empty and it must be an integer\n");
         }
 
         if (productName.isBlank() || productName.trim().isEmpty()) {
@@ -210,8 +210,8 @@ public class ProductController {
 
         StringBuilder errorMessages = new StringBuilder();
 
-        if(productId.isBlank() || productId.trim().isEmpty()) {
-            errorMessages.append("Product Id can not be empty\n");
+        if(productId.isBlank() || !productId.matches("\\d*")) {
+            errorMessages.append("Product Id can not be empty and it must be an integer!\n");
         }
         if (productName == null || productName.trim().isEmpty()) {
             errorMessages.append("Product name can not be empty\n");

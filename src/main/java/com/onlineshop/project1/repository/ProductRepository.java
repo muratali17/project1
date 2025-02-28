@@ -35,6 +35,7 @@ public class  ProductRepository {
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
+
         } finally {
             try {
                 if (stmt != null) stmt.close();
