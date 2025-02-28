@@ -15,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class CustomerController {
@@ -67,32 +68,40 @@ public class CustomerController {
 
     private final CustomerRepository customerRepository = new CustomerRepository();
 
+
+    /***
+     * Bu fonksiyon, kullanıcı pencereyi kapatma butonuna bastığında çağrılır ve
+     * mevcut pencereyi kapatır.
+     */
     @FXML
     void onClose(ActionEvent event) {
         Stage stage = (Stage) closeBtn.getScene().getWindow();
         stage.close();
     }
 
+    /***
+     * Kullanıcıyı ID ile siler.
+     * Bu fonksiyon, müşteri ID'sini alır, geçerliliğini kontrol eder ve eğer müşteri bulunursa
+     * o müşteri veritabanından silinir. Başarı durumu bir bilgi mesajı ile kullanıcıya bildirilir.
+     */
     @FXML
     void onDelete(ActionEvent event) {
 
-        if (customerIdText.getText().isEmpty()) {
+        String customerId = customerIdText.getText().strip();
+
+        if (customerId.isBlank()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Enter a integer number to delete customer!");
             alert.show();
             return;
         }
-        int customerId;
-        try {
-            customerId = Integer.parseInt(customerIdText.getText());
-        } catch (NumberFormatException ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Customer Id must be integer!");
-            alert.show();
+        Optional<Integer> customerIdInt = convertCustomerIdToInteger(customerId);
+
+        if(customerIdInt.isEmpty()){    // stop if NumberOfException is thrown inside the convertCustomerIdToInteger function.
             return;
         }
 
-        Customer customer = customerRepository.findById(customerId);
+        Customer customer = customerRepository.findById(customerIdInt.get());
 
         if (customer == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -101,7 +110,7 @@ public class CustomerController {
             return;
         }
 
-        boolean isSuccess = customerRepository.deleteCustomerById(customerId);
+        boolean isSuccess = customerRepository.deleteCustomerById(customerIdInt.get());
 
         if (isSuccess) {
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -111,42 +120,48 @@ public class CustomerController {
             successAlert.show();
         }
 
-
     }
 
+
+    /***
+     * Kullanıcıdan alınan ID ile veritabanında arama yapılır ve müşteri bilgileri,
+     * formdaki ilgili alanlara doldurulur. Eğer müşteri bulunamazsa, hata mesajı gösterilir.
+     */
     @FXML
     void onFetch(ActionEvent event) {
 
-        if (customerIdText.getText().isEmpty()) {
+        String customerId = customerIdText.getText().strip();
+
+        if (customerId.isBlank()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Enter a integer number to get customer!");
             alert.show();
             return;
         }
-        int customerId;
-        try {
-            customerId = Integer.parseInt(customerIdText.getText());
-        } catch (NumberFormatException ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Customer Id must be integer!");
-            alert.show();
+        Optional<Integer> customerIdInt = convertCustomerIdToInteger(customerId);
+
+        if(customerIdInt.isEmpty()){    // it is gonna stop if NumberOfException is thrown inside the convertCustomerIdToInteger function.
             return;
         }
 
-        Customer customer = customerRepository.findById(customerId);
+        Customer customer = customerRepository.findById(customerIdInt.get());
 
         if (customer == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Customer not found!");
+            alert.setContentText(String.format("There is no customer with the id: %s.",customerId));
             alert.show();
         } else {
             nameText.setText(customer.getCustomerName());
             addressText.setText(customer.getCustomerAddress());
             telephoneText.setText(customer.getCustomerPhoneNumber());
         }
-
     }
 
+
+    /***
+     * Bu fonksiyon, kullanıcı "Product" butonuna bastığında çağrılır ve yeni bir pencere açarak
+     * ürün bilgileri sayfasına yönlendirir.
+     */
     @FXML
     void onProduct(ActionEvent event) throws Exception {
         FXMLLoader loader = new FXMLLoader(HelloApplication.class.getResource("product-view.fxml"));
@@ -159,47 +174,52 @@ public class CustomerController {
         newStage.show();
     }
 
+
     /***
-     *
-     * @param event
-     *
-     * daha sonra bakılacak validasyon hataları kısmına.
+     * İlk olarak, kullanıcıdan alınan müşteri ID'si bir tamsayıya dönüştürülür. Eğer bu dönüşüm başarısız olursa işlem sonlanır.(Harf iceriyor ise NumberFormatException aliriz.)
+     * Ardından, bu ID'ye sahip bir müşteri veritabanında var mı diye kontrol edilir.
+     * Eğer varsa, kullanıcıya hata mesajı gösterilir.
+     * Eğer müşteri yoksa, kullanıcıdan alınan tüm diğer bilgiler doğrulandıktan sonra müşteri kaydedilir.(Bu asamada da eger hata cikar ise kullanici bildirilir ve save islemi durur.)
+     * Başarıyla kaydedilirse, başarılı işlem mesajı görüntülenir.
      */
     @FXML
     void onSave(ActionEvent event) {
-        String customerId = customerIdText.getText();
+        String customerId = customerIdText.getText().strip();
         String customerName = nameText.getText().trim();
         String customerAddress = addressText.getText().trim();
         String customerPhoneNumber = telephoneText.getText().strip();
 
-        StringBuilder errorMessages = new StringBuilder();
+        Optional<Integer> customerIdInt = convertCustomerIdToInteger(customerId);
 
-        if (customerId.isBlank() || !customerId.matches("\\d+")) {
-            errorMessages.append("Customer Id cannot be blank and it must be an integer!\n");
-        }
-
-        if (customerName.isEmpty() || !customerName.matches("^[a-zA-Z ]+$")) {
-            errorMessages.append("Customer name should only letter and  can not be empty!\n");
-        }
-        if (customerAddress.isEmpty() || !customerAddress.matches("^[a-zA-Z0-9 ,.\\-]{4,}$")) {
-            errorMessages.append("Address should be least 4 characters and can not be empty!\n");
-        }
-        if (customerPhoneNumber.isBlank() || !customerPhoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
-            errorMessages.append("Phone Number should only in xxx-xxx-xxxx format and can not be empty!\n");
-        }
-
-        if (!errorMessages.isEmpty()) {
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error!");
-            errorAlert.setContentText(errorMessages.toString());
-            errorAlert.showAndWait();
+        if(customerIdInt.isEmpty()){    // stop if NumberOfException is thrown inside the convertCustomerIdToInteger function.
             return;
         }
 
-        int customerIdInt = Integer.parseInt(customerId);
+        Customer existsCustomer = customerRepository.findById(customerIdInt.get());
 
+        if (existsCustomer != null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(String.format("There is already a customer with the Id: %s in the system.",customerId));
+            alert.show();
+            return;
+        }
 
-        boolean isSuccess = customerRepository.saveCustomer(customerIdInt, customerName, customerAddress, customerPhoneNumber);
+        boolean isValid = validateInputValues(
+                customerId,
+                customerName,
+                customerAddress,
+                customerPhoneNumber,
+                false
+        );
+        if(!isValid) return;    //If validation exception occurred then stop.
+
+        boolean isSuccess = customerRepository
+                .saveCustomer(
+                        customerIdInt.get(),
+                        customerName,
+                        customerAddress,
+                        customerPhoneNumber
+                );
 
         if (isSuccess) {
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
@@ -209,80 +229,174 @@ public class CustomerController {
             successAlert.show();
         }
 
-        else{
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(String.format("Something went wrong. Check if there is a customer with id: %s ", customerId));
-            alert.show();
+    }
 
+
+    /***
+     * İlk olarak, kullanıcıdan alınan müşteri ID'si bir tamsayıya dönüştürülür. Eğer bu dönüşüm başarısız olursa işlem sonlanır.(Harf iceriyor ise NumberFormatException aliriz.)
+     * Ardından, bu ID'ye sahip müşteri veritabanında aranır. Eğer müşteri bulunmazsa, kullanıcıya hata mesajı gösterilir.
+     * Eğer müşteri varsa, yeni bilgiler doğrulanır. (Bu asamada da eger hata cikar ise kullanici bildirilir ve update islemi durur.)
+     * Mevcut bilgilerle yeni bilgiler karşılaştırılır ve değişiklik varsa güncelleme yapılır.
+     * Güncelleme işlemi başarılıysa, kullanıcıya bilgi mesajı gösterilir.
+     */
+    @FXML
+    void onUpdate(ActionEvent event) {
+        String customerId= customerIdText.getText().strip();
+        String newCustomerName = nameText.getText().trim();
+        String newCustomerAddress = addressText.getText().trim();
+        String newCustomerPhoneNumber = telephoneText.getText().strip();
+
+        Optional<Integer> customerIdInt = convertCustomerIdToInteger(customerId);
+
+        if(customerIdInt.isEmpty()){    // stop if NumberOfException is thrown inside the convertCustomerIdToInteger function.
+            return;
         }
 
+        Customer existsCustomer = customerRepository.findById(customerIdInt.get());
+
+        if (existsCustomer == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(String.format("There is no such a customer with the Id: %s in the system.",customerId));
+            alert.show();
+            return;
+        }
+
+        boolean isValid = validateInputValues(
+                customerId,
+                newCustomerName,
+                newCustomerAddress,
+                newCustomerPhoneNumber,
+                true
+        );
+        if(!isValid) return;    // If validation exception occurred then stop.
+
+
+        boolean isChanged = hasCustomerDetailsChanged(
+                        existsCustomer,
+                        newCustomerName,
+                        newCustomerAddress,
+                        newCustomerPhoneNumber
+        );
+
+        if(!isChanged){
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setContentText("User is already Up-to-date. Please enter new information.");
+            successAlert.getDialogPane().setStyle("-fx-background-color: #0859c5;");
+            successAlert.getDialogPane().setPrefSize(400, 150);
+            successAlert.show();
+            return;
+        }
+
+
+        boolean isSuccess = customerRepository
+                .updateCustomer(
+                        customerIdInt.get(),
+                        newCustomerName,
+                        newCustomerAddress,
+                        newCustomerPhoneNumber
+                );
+
+        if (isSuccess) {
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setContentText("User has been updated successfully.");
+            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+            successAlert.getDialogPane().setPrefSize(400, 150);
+            successAlert.show();
+        }
 
     }
 
 
     /***
-     *
-     * @param event
-     *
-     * daha sonra bakılacak validasyon hataları kısmına.
+     * Kullanıcı girdiği bilgileri doğrular ve hata mesajlarını toplar.
+     * Ayrıca telefon numarasının veritabanında mevcut olup olmadığı da kontrol edilir.
+     * onUpdate ve onSave islemleri icin farkli davranis gösterir.
+     * Boilerplate kod yazilmasini engeller.
      */
-    @FXML
-    void onUpdate(ActionEvent event) {
-        String customerId = customerIdText.getText();
-        String customerName = nameText.getText();
-        String customerAddress = addressText.getText();
-        String customerPhoneNumber = telephoneText.getText();
-
+    private boolean validateInputValues(String customerId, String customerName, String customerAddress, String customerPhoneNumber,boolean isUpdate) {
         StringBuilder errorMessages = new StringBuilder();
 
         if (customerId.isBlank() || !customerId.matches("\\d+")) {
             errorMessages.append("Customer Id cannot be blank and it must be an integer!\n");
         }
+        if (customerName.isBlank() || !customerName.matches("^[a-zA-ZğüşöçıİĞÜŞÖÇ ]{1,16}$")) {
+            errorMessages.append("Customer name should only contain letters (including Turkish characters) and be at most 16 characters!\n");
+        }
+        if (customerAddress.isBlank() || !customerAddress.matches("^[a-zA-ZğüşöçıİĞÜŞÖÇ0-9 ,.\\-]{1,32}$")) {
+            errorMessages.append("Address cannot be empty and must be at most 32 characters!\n");
+        }
+        if (customerPhoneNumber.isBlank() || !customerPhoneNumber.matches("^\\+90-\\d{3}-\\d{3}-\\d{4}$")) {
+            errorMessages.append("Phone Number should be in +90-xxx-xxx-xxxx format and cannot be empty!\n");
+        }
 
-        if (customerName.isBlank() || customerName.trim().isEmpty()) {
-            errorMessages.append("Customer name can not be empty!\n");
+        List<String> existsPhoneNumbers = customerRepository.getAllCustomerPhoneNumbers();
+
+        if(isUpdate){
+            int customerIdInt = convertCustomerIdToInteger(customerId).get();
+
+            Customer repoCustomer = customerRepository.findById(customerIdInt);
+
+            existsPhoneNumbers.remove(repoCustomer.getCustomerPhoneNumber());
         }
-        if (customerAddress.isBlank() || customerAddress.trim().isEmpty()) {
-            errorMessages.append("Address can not be empty!\n");
+
+        boolean phoneExists = existsPhoneNumbers.stream()
+                .anyMatch(phone -> phone.equals(customerPhoneNumber));
+
+        if (phoneExists) {
+            errorMessages.append("Phone Number already exists in the database!\n");
         }
-        if (customerPhoneNumber.isBlank() || !customerPhoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
-            errorMessages.append("Phone Number should only contain numbers and can not be empty\n\n");
-        }
+
 
         if (!errorMessages.isEmpty()) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
             errorAlert.setTitle("Error!");
             errorAlert.setContentText(errorMessages.toString());
             errorAlert.showAndWait();
-            return;
+            return false;
         }
+        return true;
+    }
 
-        int customerIdInt = Integer.parseInt(customerId);
 
-        try {
-            boolean isSuccess = customerRepository.updateCustomer(customerIdInt, customerName, customerAddress, customerPhoneNumber);
+    /***
+     * Müşteri bilgileriyle yeni girilen değerleri karşılaştırarak değişiklik olup olmadığını kontrol eder.
+     * Boilerplate kod yazilmasini engeller.
+     */
+    private boolean hasCustomerDetailsChanged(Customer customer,String newCustomerName, String newCustomerAddress, String newCustomerPhoneNumber ) {
+        boolean isChanged = false;
 
-            if (isSuccess) {
-                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-                successAlert.setContentText("User has been inserted successfully.");
-                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-                successAlert.getDialogPane().setPrefSize(400, 150);
-                successAlert.show();
-            }
-            else{
-                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                errorAlert.setContentText("Something went wrong, Check if there is a customer with the id: "+customerId);
-                errorAlert.getDialogPane().setPrefSize(400, 150);
-                errorAlert.show();
-            }
+        if(!customer.getCustomerName().equals(newCustomerName)){
+            isChanged = true;
+            return isChanged;
         }
-        catch (RuntimeException e) {
-            Alert errorAlert = new Alert(Alert.AlertType.WARNING);
-            errorAlert.setContentText(e.getMessage());
-            errorAlert.getDialogPane().setPrefSize(400, 150);
-            errorAlert.show();
+        if(!customer.getCustomerAddress().equals(newCustomerAddress)){
+            isChanged = true;
+            return isChanged;
         }
+        if(!customer.getCustomerPhoneNumber().equals(newCustomerPhoneNumber)){
+            isChanged = true;
+            return isChanged;
+        }
+        return isChanged;
 
     }
+
+
+    /***
+     * Müşteri ID'sini String'den Integer'a dönüştürür.
+     * NumberFormatException hatasi cikar ise burda handle edilir.
+     * Boilerplate kod yazilmasini engeller.
+     */
+    private Optional<Integer> convertCustomerIdToInteger(String customerIdString) {
+        try {
+            return Optional.of(Integer.parseInt(customerIdString));
+        } catch (NumberFormatException ex) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Customer Id must be integer!");
+            alert.show();
+            return Optional.empty();
+        }
+    }
+
 
 }
