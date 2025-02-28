@@ -1,7 +1,10 @@
 package com.onlineshop.project1.repository;
 
 import com.onlineshop.project1.entity.Customer;
+import com.onlineshop.project1.entity.Product;
 import com.onlineshop.project1.util.DatabaseConnection;
+
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -77,7 +80,7 @@ public class CustomerRepository {
         return isSuccess;
     }
 
-    public boolean saveCustomer(String customerName, String customerAddress, String customerPhoneNumber) {
+    public boolean saveCustomer(int customerId, String customerName, String customerAddress, String customerPhoneNumber) {
         Connection conn = null;
         PreparedStatement stmt = null;
         boolean isSuccess = false;
@@ -85,12 +88,13 @@ public class CustomerRepository {
 
         try {
             conn = DatabaseConnection.getConnection();
-            String saveCustomer = "INSERT INTO customers (customer_name, customer_address, customer_phone_number) VALUES (?,?,?)";
+            String saveCustomer = "INSERT INTO customers (customer_id,customer_name, customer_address, customer_phone_number) VALUES (?,?,?,?)";
 
             stmt = conn.prepareStatement(saveCustomer);
-            stmt.setString(1, customerName);
-            stmt.setString(2, customerAddress);
-            stmt.setString(3, customerPhoneNumber);
+            stmt.setInt(1, customerId);
+            stmt.setString(2, customerName);
+            stmt.setString(3, customerAddress);
+            stmt.setString(4, customerPhoneNumber);
 
             int effectedRowCount = stmt.executeUpdate();
 
@@ -99,7 +103,9 @@ public class CustomerRepository {
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-        } finally {
+        }
+
+        finally {
             try {
                 if (stmt != null) stmt.close();
                 if (conn != null) conn.close();
@@ -118,6 +124,11 @@ public class CustomerRepository {
         boolean isSuccess = false;
 
         try {
+
+            if(!isUpdated(customerId, customerName, customerAddress, customerPhoneNumber)) {
+                throw new RuntimeException("You didnt update the product");
+            }
+
             conn = DatabaseConnection.getConnection();
             String updateCustomer = "UPDATE customers SET customer_name = ?, customer_address = ?, customer_phone_number = ? WHERE customer_id = ?";
 
@@ -135,7 +146,7 @@ public class CustomerRepository {
             if(effectedRowCount == 1) isSuccess = true;
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.err.println("SQL Error: " + e.getMessage());
         }finally {
             try {
                 if (stmt != null) stmt.close();
@@ -150,5 +161,31 @@ public class CustomerRepository {
 
     }
 
+    public boolean isUpdated(int customerId, String customerName, String customerAddress, String customerPhoneNumber ) throws SQLException {
+
+        boolean isChanged = false;
+
+        Customer customer = findById(customerId);
+
+        if(customer == null){
+            throw new SQLException("There is no customer with id " + customerId);
+        }
+
+        if(!customer.getCustomerName().equals(customerName)){
+            isChanged = true;
+            return isChanged;
+        }
+        if(!customer.getCustomerAddress().equals(customerAddress)){
+            isChanged = true;
+            return isChanged;
+        }
+        if(!customer.getCustomerPhoneNumber().equals(customerPhoneNumber)){
+            isChanged = true;
+            return isChanged;
+        }
+
+        return isChanged;
+
+    }
 
 }

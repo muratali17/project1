@@ -76,7 +76,7 @@ public class CustomerController {
     @FXML
     void onDelete(ActionEvent event) {
 
-        if(customerIdText.getText().isEmpty()) {
+        if (customerIdText.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Enter a integer number to delete customer!");
             alert.show();
@@ -85,7 +85,7 @@ public class CustomerController {
         int customerId;
         try {
             customerId = Integer.parseInt(customerIdText.getText());
-        }catch (NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Customer Id must be integer!");
             alert.show();
@@ -103,9 +103,9 @@ public class CustomerController {
 
         boolean isSuccess = customerRepository.deleteCustomerById(customerId);
 
-        if(isSuccess){
+        if (isSuccess) {
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText(String.format("User with the id: %s has been deleted successfully.",customerId));
+            successAlert.setContentText(String.format("User with the id: %s has been deleted successfully.", customerId));
             successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
             successAlert.getDialogPane().setPrefSize(400, 150);
             successAlert.show();
@@ -117,7 +117,7 @@ public class CustomerController {
     @FXML
     void onFetch(ActionEvent event) {
 
-        if(customerIdText.getText().isEmpty()) {
+        if (customerIdText.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Enter a integer number to get customer!");
             alert.show();
@@ -125,8 +125,8 @@ public class CustomerController {
         }
         int customerId;
         try {
-             customerId = Integer.parseInt(customerIdText.getText());
-        }catch (NumberFormatException ex){
+            customerId = Integer.parseInt(customerIdText.getText());
+        } catch (NumberFormatException ex) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Customer Id must be integer!");
             alert.show();
@@ -135,11 +135,11 @@ public class CustomerController {
 
         Customer customer = customerRepository.findById(customerId);
 
-        if(customer == null) {
+        if (customer == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Customer not found!");
             alert.show();
-        }else{
+        } else {
             nameText.setText(customer.getCustomerName());
             addressText.setText(customer.getCustomerAddress());
             telephoneText.setText(customer.getCustomerPhoneNumber());
@@ -167,41 +167,54 @@ public class CustomerController {
      */
     @FXML
     void onSave(ActionEvent event) {
+        String customerId = customerIdText.getText();
         String customerName = nameText.getText().trim();
         String customerAddress = addressText.getText().trim();
         String customerPhoneNumber = telephoneText.getText().strip();
 
         StringBuilder errorMessages = new StringBuilder();
 
+        if (customerId.isBlank() || !customerId.matches("\\d+")) {
+            errorMessages.append("Customer Id cannot be blank and it must be an integer!\n");
+        }
+
         if (customerName.isEmpty() || !customerName.matches("^[a-zA-Z ]+$")) {
             errorMessages.append("Customer name should only letter and  can not be empty!\n");
         }
-        if (customerAddress.isEmpty() || !customerAddress.matches("^[a-zA-Z0-9 ,.\\-]{10,}$") ) {
-            errorMessages.append("Address should be least 10 characters and can not be empty!\n");
+        if (customerAddress.isEmpty() || !customerAddress.matches("^[a-zA-Z0-9 ,.\\-]{4,}$")) {
+            errorMessages.append("Address should be least 4 characters and can not be empty!\n");
         }
-        if (!customerPhoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
+        if (customerPhoneNumber.isBlank() || !customerPhoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
             errorMessages.append("Phone Number should only in xxx-xxx-xxxx format and can not be empty!\n");
         }
 
         if (!errorMessages.isEmpty()) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Hata!");
-            errorAlert.setHeaderText(null);
+            errorAlert.setTitle("Error!");
             errorAlert.setContentText(errorMessages.toString());
             errorAlert.showAndWait();
             return;
         }
 
-        boolean isSuccess = customerRepository.saveCustomer(customerName,customerAddress,customerPhoneNumber);
+        int customerIdInt = Integer.parseInt(customerId);
 
-        if(isSuccess){
+
+        boolean isSuccess = customerRepository.saveCustomer(customerIdInt, customerName, customerAddress, customerPhoneNumber);
+
+        if (isSuccess) {
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("User has been inserted successfully.");
+            successAlert.setContentText("User has been updated successfully.");
             successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
             successAlert.getDialogPane().setPrefSize(400, 150);
             successAlert.show();
         }
 
+        else{
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(String.format("Something went wrong. Check if there is a customer with id: %s ", customerId));
+            alert.show();
+
+        }
 
 
     }
@@ -215,43 +228,60 @@ public class CustomerController {
      */
     @FXML
     void onUpdate(ActionEvent event) {
-        int customerId = Integer.parseInt(customerIdText.getText());
+        String customerId = customerIdText.getText();
         String customerName = nameText.getText();
         String customerAddress = addressText.getText();
         String customerPhoneNumber = telephoneText.getText();
 
         StringBuilder errorMessages = new StringBuilder();
 
-        if (customerName == null || customerName.trim().isEmpty()) {
+        if (customerId.isBlank() || !customerId.matches("\\d+")) {
+            errorMessages.append("Customer Id cannot be blank and it must be an integer!\n");
+        }
+
+        if (customerName.isBlank() || customerName.trim().isEmpty()) {
             errorMessages.append("Customer name can not be empty!\n");
         }
-        if (customerAddress == null || customerAddress.trim().isEmpty()) {
+        if (customerAddress.isBlank() || customerAddress.trim().isEmpty()) {
             errorMessages.append("Address can not be empty!\n");
         }
-        if (customerPhoneNumber == null || !customerPhoneNumber.matches("\\d+")) {
+        if (customerPhoneNumber.isBlank() || !customerPhoneNumber.matches("\\d{3}-\\d{3}-\\d{4}")) {
             errorMessages.append("Phone Number should only contain numbers and can not be empty\n\n");
         }
 
         if (!errorMessages.isEmpty()) {
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
             errorAlert.setTitle("Error!");
-            errorAlert.setHeaderText(null);
             errorAlert.setContentText(errorMessages.toString());
             errorAlert.showAndWait();
             return;
         }
 
-        boolean isSuccess = customerRepository.updateCustomer(customerId,customerName,customerAddress,customerPhoneNumber);
+        int customerIdInt = Integer.parseInt(customerId);
 
-        if(isSuccess){
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("User has been inserted successfully.");
-            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
+        try {
+            boolean isSuccess = customerRepository.updateCustomer(customerIdInt, customerName, customerAddress, customerPhoneNumber);
+
+            if (isSuccess) {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText("User has been inserted successfully.");
+                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+            }
+            else{
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setContentText("Something went wrong, Check if there is a customer with the id: "+customerId);
+                errorAlert.getDialogPane().setPrefSize(400, 150);
+                errorAlert.show();
+            }
         }
-
-
+        catch (RuntimeException e) {
+            Alert errorAlert = new Alert(Alert.AlertType.WARNING);
+            errorAlert.setContentText(e.getMessage());
+            errorAlert.getDialogPane().setPrefSize(400, 150);
+            errorAlert.show();
+        }
 
     }
 
