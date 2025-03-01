@@ -4,6 +4,7 @@ import com.onlineshop.project1.entity.Product;
 import com.onlineshop.project1.util.DatabaseConnection;
 
 
+import javax.management.InstanceAlreadyExistsException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,6 +20,12 @@ public class  ProductRepository {
 
 
         try {
+
+            int existingId = checkProductAndSupplierExists(productId, productName, supplierName);
+            if(existingId != -1 ) {
+                throw new RuntimeException("This Supplier Name and its product already exists with the ProductId " + existingId);
+            }
+
             conn = DatabaseConnection.getConnection();
             String saveProduct = "INSERT INTO products (product_id,product_name, supplier_name, product_price) VALUES (?,?,?,?)";
 
@@ -35,8 +42,8 @@ public class  ProductRepository {
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
-
-        } finally {
+        }
+        finally {
             try {
                 if (stmt != null) stmt.close();
                 if (conn != null) conn.close();
@@ -125,6 +132,10 @@ public class  ProductRepository {
             if(!isUpdated(productId, productName, productSupplier, productPrice)){
                 throw new RuntimeException("You didnt update the product");
             }
+            int existingId = checkProductAndSupplierExists(productId, productName, productSupplier);
+            if(existingId != -1) {
+                throw new RuntimeException("This Supplier Name and its product already exists with the ProductId "+ existingId);
+            }
 
             conn = DatabaseConnection.getConnection();
 
@@ -188,5 +199,47 @@ public class  ProductRepository {
 
         return isChanged;
 
+    }
+
+    /***
+     * Eger bir product zaten veritabananında varsa id sini döndürür yoksa -1 döndürür.
+     * @param productId int
+     * @param productName String
+     * @param supplierName String
+     * @return productId
+     */
+    int checkProductAndSupplierExists(int productId, String productName, String supplierName){
+        int id = -1;
+        try{
+            Connection conn = DatabaseConnection.getConnection();
+            String getProductQuery = "SELECT product_id FROM products WHERE product_name = ? AND supplier_name = ?";
+            PreparedStatement stmt = conn.prepareStatement(getProductQuery);
+
+            stmt.setString(1, productName);
+            stmt.setString(2, supplierName);
+
+            ResultSet resultSet = stmt.executeQuery();
+
+            if(resultSet.next()){
+                if(resultSet.getInt(1) != productId){
+                    id = resultSet.getInt(1);
+                    return id;
+                }
+            }
+
+            try {
+                stmt.close();
+                conn.close();
+            } catch (SQLException e) {
+                System.err.println("Error while closing resources: " + e.getMessage());
+            }
+
+            return id;
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+
+        return id;
     }
 }
