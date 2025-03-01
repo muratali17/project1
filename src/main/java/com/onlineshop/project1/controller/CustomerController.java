@@ -326,7 +326,7 @@ public class CustomerController {
             errorMessages.append("Address cannot be empty and must be at most 32 characters, only English letters, numbers, space, comma, dot, and dash allowed!\n");
         }
         if (customerPhoneNumber.isBlank() || !customerPhoneNumber.matches("^\\+90-\\d{3}-\\d{3}-\\d{4}$")) {
-            errorMessages.append("Phone Number should be in +90-xxx-xxx-xxxx or +90 xxx xxx xxxx format and cannot be empty!\n");
+            errorMessages.append("Phone Number should be in +90-xxx-xxx-xxxx and cannot be empty!\n");
         }
 
         List<String> existsPhoneNumbers = customerRepository.getAllCustomerPhoneNumbers();

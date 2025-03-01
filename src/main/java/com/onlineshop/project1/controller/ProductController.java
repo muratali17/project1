@@ -17,6 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import javax.management.InstanceAlreadyExistsException;
 import java.math.BigDecimal;
 
 public class ProductController {
@@ -157,17 +158,16 @@ public class ProductController {
         StringBuilder errorMessages = new StringBuilder();
 
         if(productId.isBlank() || !productId.matches("\\d+")) {
-            errorMessages.append("Product Id can not be empty and it must be an integer\n");
+            errorMessages.append("Product Id can not be empty and it must be an integer!\n");
         }
-
-        if (productName.isBlank() || productName.trim().isEmpty()) {
-            errorMessages.append("Product name can not be empty\n");
+        if (productName.isBlank()|| !productName.matches("^[a-zA-Z]+(\\s[a-zA-z]+)*$") || productName.length() > 16) {
+            errorMessages.append("Product name can not be empty and must be between 2-16 character\n");
         }
-        if (supplierName.isBlank() || supplierName.trim().isEmpty()) {
-            errorMessages.append("Supplier name can not be empty\n");
+        if (supplierName.isBlank() || !supplierName.matches("^[a-zA-Z]+(\\s[a-zA-z]+)*$") || productName.length() > 16) {
+            errorMessages.append("Supplier name can not be empty and must be between 2-16 letters\n");
         }
-        if (productPrice.isBlank() || !productPrice.matches("\\d+")) {
-            errorMessages.append("Product price should only contain numbers and can not be empty\n");
+        if (productPrice.isBlank() || !productPrice.matches("^(0|[1-9]\\d*)(\\.\\d+)?$")) {
+            errorMessages.append("Product price should be either decimal or integer and can not be empty\n");
         }
 
         if(!errorMessages.isEmpty()){
@@ -181,20 +181,26 @@ public class ProductController {
 
         BigDecimal productPriceBigDecimal = new BigDecimal(productPrice);
         int productIdInt = Integer.parseInt(productId);
+        try {
+            boolean isSuccess = productRepository.saveProduct(productIdInt, productName, supplierName, productPriceBigDecimal);
 
-        boolean isSuccess = productRepository.saveProduct(productIdInt,productName,supplierName,productPriceBigDecimal);
-
-        if(isSuccess){
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("Product has been inserted successfully.");
-            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
+            if (isSuccess) {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText("Product has been inserted successfully.");
+                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+            } else {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setContentText("Something went wrong, Check if there is already a product with the id: " + productId);
+                errorAlert.getDialogPane().setPrefSize(450, 150);
+                errorAlert.show();
+            }
         }
-        else{
+        catch (RuntimeException ex){
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setContentText("Something went wrong, Check if there is already a product with the id: "+productId);
-            errorAlert.getDialogPane().setPrefSize(450, 150);
+            errorAlert.setContentText(ex.getMessage());
+            errorAlert.getDialogPane().setPrefSize(400, 150);
             errorAlert.show();
         }
     }
@@ -210,17 +216,17 @@ public class ProductController {
 
         StringBuilder errorMessages = new StringBuilder();
 
-        if(productId.isBlank() || !productId.matches("\\d*")) {
+        if(productId.isBlank() || !productId.matches("\\d+")) {
             errorMessages.append("Product Id can not be empty and it must be an integer!\n");
         }
-        if (productName == null || productName.trim().isEmpty()) {
-            errorMessages.append("Product name can not be empty\n");
+        if (productName.isBlank()|| !productName.matches("^[a-zA-Z]+(\\s[a-zA-z]+)*$") || productName.length() > 16) {
+            errorMessages.append("Product name can not be empty and must be between 2-16 character\n");
         }
-        if (supplierName == null || supplierName.trim().isEmpty()) {
-            errorMessages.append("Supplier name can not be empty\n");
+        if (supplierName.isBlank() || !supplierName.matches("^[a-zA-Z]+(\\s[a-zA-z]+)*$") || productName.length() > 16) {
+            errorMessages.append("Supplier name can not be empty and must be between 2-16 letters\n");
         }
-        if (productPrice == null || !productPrice.matches("\\d+")) {
-            errorMessages.append("Product price should only contain numbers and can not be empty\n");
+        if (productPrice.isBlank() || !productPrice.matches("^(0|[1-9]\\d*)(\\.\\d+)?$")) {
+            errorMessages.append("Product price should be either decimal or integer and can not be empty\n");
         }
 
         if (!errorMessages.isEmpty()) {
@@ -255,10 +261,18 @@ public class ProductController {
             }
         }
         catch (RuntimeException e){
-            Alert errorAlert = new Alert(Alert.AlertType.WARNING);
-            errorAlert.setContentText(e.getMessage());
-            errorAlert.getDialogPane().setPrefSize(400, 150);
-            errorAlert.show();
+            if(e.getMessage().contains("This Supplier Name and its product already exists with the ProductId")) {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setContentText(e.getMessage());
+                errorAlert.getDialogPane().setPrefSize(400, 150);
+                errorAlert.show();
+            }
+            else {
+                Alert errorAlert = new Alert(Alert.AlertType.WARNING);
+                errorAlert.setContentText(e.getMessage());
+                errorAlert.getDialogPane().setPrefSize(400, 150);
+                errorAlert.show();
+            }
         }
 
     }
@@ -273,5 +287,8 @@ public class ProductController {
 
         newStage.show();
     }
+
+
+
 
 }
