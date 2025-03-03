@@ -188,7 +188,7 @@ public class CustomerController {
 
         Stage newStage = new Stage();
         newStage.setScene(new Scene(root));
-        newStage.setTitle("Product View");
+        newStage.setTitle("Welcome To Product Page!");
 
         newStage.show();
     }
@@ -252,7 +252,7 @@ public class CustomerController {
         catch (SQLException e){
             ExceptionHandler.handleException(e,e.getMessage());
         }
-        catch (ConnectException e ){
+        catch (ConnectException e){
             ExceptionHandler.handleException(e,e.getMessage());
         }
 
@@ -308,7 +308,7 @@ public class CustomerController {
             if (!isChanged) {
                 Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                 successAlert.setContentText("User is already Up-to-date. Please enter new information.");
-                successAlert.getDialogPane().setStyle("-fx-background-color: #0859c5;");
+                successAlert.getDialogPane().setStyle("-fx-background-color: #1c6ee1;");
                 successAlert.getDialogPane().setPrefSize(400, 150);
                 successAlert.show();
                 return;
@@ -330,6 +330,7 @@ public class CustomerController {
                 successAlert.getDialogPane().setPrefSize(400, 150);
                 successAlert.show();
             }
+
         }catch (SQLException e){
             ExceptionHandler.handleException(e,e.getMessage());
         }

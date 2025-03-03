@@ -254,7 +254,6 @@ public class  ProductRepository {
             } catch (SQLException e) {
                 ExceptionHandler.handleException(e,"Error while closing resources: ");
             }
-
             return id;
         } catch (SQLException e) {
             throw new SQLException("Error while saving product. Check if there is a product with the ProductId " + productId);
