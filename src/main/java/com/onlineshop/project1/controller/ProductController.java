@@ -5,6 +5,7 @@ import com.onlineshop.project1.HelloApplication;
 import com.onlineshop.project1.entity.Customer;
 import com.onlineshop.project1.entity.Product;
 import com.onlineshop.project1.repository.ProductRepository;
+import com.onlineshop.project1.util.ExceptionHandler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,6 +20,8 @@ import javafx.stage.Stage;
 
 import javax.management.InstanceAlreadyExistsException;
 import java.math.BigDecimal;
+import java.net.ConnectException;
+import java.sql.SQLException;
 
 public class ProductController {
 
@@ -93,23 +96,30 @@ public class ProductController {
             return;
         }
 
-        Product product = productRepository.findById(productId);
+        try {
+            Product product = productRepository.findById(productId);
 
-        if (product == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(String.format("There is no such a product in the system with the id: %s", productId));
-            alert.show();
-            return;
+            if (product == null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText(String.format("There is no such a product in the system with the id: %s", productId));
+                alert.show();
+                return;
+            }
+
+            boolean isSuccess = productRepository.deleteProductById(productId);
+
+            if (isSuccess) {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText(String.format("Product with the id: %s has been deleted successfully.", productId));
+                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+            }
+        }catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
-
-        boolean isSuccess = productRepository.deleteProductById(productId);
-
-        if(isSuccess){
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText(String.format("Product with the id: %s has been deleted successfully.",productId));
-            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
 
 
@@ -132,17 +142,24 @@ public class ProductController {
             alert.show();
             return;
         }
+        try {
+            Product product = productRepository.findById(productId);
 
-        Product product = productRepository.findById(productId);
-
-        if(product == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Product not found!");
-            alert.show();
-        }else{
-            nameText.setText(product.getProductName());
-            priceText.setText(product.getProductPrice().toPlainString());
-            supplierText.setText(product.getSupplierName());
+            if (product == null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("Product not found!");
+                alert.show();
+            } else {
+                nameText.setText(product.getProductName());
+                priceText.setText(product.getProductPrice().toPlainString());
+                supplierText.setText(product.getSupplierName());
+            }
+        }
+        catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
+        }
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
 
     }
@@ -197,11 +214,14 @@ public class ProductController {
                 errorAlert.show();
             }
         }
+        catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
+        }
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
+        }
         catch (RuntimeException ex){
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setContentText(ex.getMessage());
-            errorAlert.getDialogPane().setPrefSize(400, 150);
-            errorAlert.show();
+            ExceptionHandler.handleException(ex,ex.getMessage());
         }
     }
 
@@ -259,6 +279,12 @@ public class ProductController {
                 errorAlert.getDialogPane().setPrefSize(400, 150);
                 errorAlert.show();
             }
+        }
+        catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
+        }
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
         catch (RuntimeException e){
             if(e.getMessage().contains("This Supplier Name and its product already exists with the ProductId")) {

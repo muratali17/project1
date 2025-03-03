@@ -2,10 +2,12 @@ package com.onlineshop.project1.repository;
 
 import com.onlineshop.project1.entity.Product;
 import com.onlineshop.project1.util.DatabaseConnection;
+import com.onlineshop.project1.util.ExceptionHandler;
 
 
 import javax.management.InstanceAlreadyExistsException;
 import java.math.BigDecimal;
+import java.net.ConnectException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,7 +15,7 @@ import java.sql.SQLException;
 
 public class  ProductRepository {
 
-    public boolean saveProduct(int productId, String productName, String supplierName, BigDecimal productPrice) {
+    public boolean saveProduct(int productId, String productName, String supplierName, BigDecimal productPrice) throws SQLException , ConnectException {
         Connection conn = null;
         PreparedStatement stmt = null;
         boolean isSuccess = false;
@@ -41,14 +43,17 @@ public class  ProductRepository {
 
 
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            throw new SQLException("Error while saving product. Check if there is a product with the ProductId " + productId);
+        }
+        catch (ConnectException e) {
+            throw e;
         }
         finally {
             try {
                 if (stmt != null) stmt.close();
                 if (conn != null) conn.close();
             } catch (SQLException e) {
-                System.err.println("Error while closing resources: " + e.getMessage());
+                ExceptionHandler.handleException(e,"Error while closing resources: ");
             }
         }
 
@@ -56,7 +61,7 @@ public class  ProductRepository {
         return isSuccess;
     }
 
-    public Product findById(int productId) {
+    public Product findById(int productId) throws SQLException  ,ConnectException {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet resultSet = null;
@@ -78,21 +83,24 @@ public class  ProductRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            throw new SQLException("Error while finding product by id. Check if there is a product with the ProductId " + productId);
+        }
+        catch (ConnectException e) {
+            throw e;
         } finally {
             try {
                 if (resultSet != null) resultSet.close();
                 if (stmt != null) stmt.close();
                 if (conn != null) conn.close();
             } catch (SQLException e) {
-                System.err.println("Error while closing resources: " + e.getMessage());
+                ExceptionHandler.handleException(e,"Error while closing resources: ");
             }
         }
 
         return product;
     }
 
-    public boolean deleteProductById(int productId){
+    public boolean deleteProductById(int productId) throws SQLException  ,ConnectException {
         Connection conn = null;
         PreparedStatement stmt = null;
         Product product = null;
@@ -110,19 +118,22 @@ public class  ProductRepository {
             if(effectedRowCount == 1) isSuccess = true;
 
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        } finally {
+            throw new SQLException("Error while deleting product by id. Check if there is a product with the ProductId " + productId);
+        }
+        catch (ConnectException e) {
+            throw e;
+        }finally {
             try {
                 if (stmt != null) stmt.close();
                 if (conn != null) conn.close();
             } catch (SQLException e) {
-                System.err.println("Error while closing resources: " + e.getMessage());
+                ExceptionHandler.handleException(e,"Error while closing resources: ");
             }
         }
         return isSuccess;
     }
 
-    public boolean updateProduct(int productId, String productName, String productSupplier, BigDecimal productPrice) {
+    public boolean updateProduct(int productId, String productName, String productSupplier, BigDecimal productPrice) throws SQLException  ,ConnectException {
         Connection conn = null;
         PreparedStatement stmt = null;
         boolean isSuccess = false;
@@ -160,13 +171,16 @@ public class  ProductRepository {
 
 
         } catch (SQLException e) {
-            System.err.println("SQL Error: " + e.getMessage());
+            throw new SQLException("Error while updating product. Check if there is a product with the ProductId " + productId);
+        }
+        catch (ConnectException e) {
+            throw e;
         } finally {
             try {
                 if (stmt != null) stmt.close();
                 if (conn != null) conn.close();
             } catch (SQLException e) {
-                System.err.println("Error while closing resources: " + e.getMessage());
+                ExceptionHandler.handleException(e,"Error while closing resources: ");
             }
         }
 
@@ -174,29 +188,36 @@ public class  ProductRepository {
     }
 
 
-    public boolean isUpdated(int productId, String productName, String productSupplier, BigDecimal productPrice ) throws SQLException {
+    public boolean isUpdated(int productId, String productName, String productSupplier, BigDecimal productPrice ) throws SQLException, ConnectException {
 
         boolean isChanged = false;
 
-        Product product = findById(productId);
+        try {
+            Product product = findById(productId);
 
-        if(product == null){
-            throw new SQLException("There is no product with id " + productId);
-        }
+            if (product == null) {
+                throw new SQLException("There is no product with id " + productId);
+            }
 
-        if(!product.getProductName().equals(productName)){
-            isChanged = true;
-            return isChanged;
+            if (!product.getProductName().equals(productName)) {
+                isChanged = true;
+                return isChanged;
+            }
+            if (!product.getSupplierName().equals(productSupplier)) {
+                isChanged = true;
+                return isChanged;
+            }
+            if (!product.getProductPrice().equals(productPrice)) {
+                isChanged = true;
+                return isChanged;
+            }
         }
-        if(!product.getSupplierName().equals(productSupplier)){
-            isChanged = true;
-            return isChanged;
+        catch (SQLException e) {
+            throw new SQLException(e.getMessage());
         }
-        if(!product.getProductPrice().equals(productPrice)){
-            isChanged = true;
-            return isChanged;
+        catch (ConnectException e) {
+            throw e;
         }
-
         return isChanged;
 
     }
@@ -208,7 +229,7 @@ public class  ProductRepository {
      * @param supplierName String
      * @return productId
      */
-    int checkProductAndSupplierExists(int productId, String productName, String supplierName){
+    int checkProductAndSupplierExists(int productId, String productName, String supplierName) throws SQLException  ,ConnectException {
         int id = -1;
         try{
             Connection conn = DatabaseConnection.getConnection();
@@ -231,15 +252,20 @@ public class  ProductRepository {
                 stmt.close();
                 conn.close();
             } catch (SQLException e) {
-                System.err.println("Error while closing resources: " + e.getMessage());
+                ExceptionHandler.handleException(e,"Error while closing resources: ");
             }
-
+            return id;
+        } catch (SQLException e) {
+            throw new SQLException("Error while saving product. Check if there is a product with the ProductId " + productId);
+        }
+        catch (ConnectException e) {
+            throw e;
+        }
+        finally {
             return id;
         }
-        catch (SQLException e){
-            e.printStackTrace();
-        }
 
-        return id;
+
+
     }
 }
