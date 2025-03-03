@@ -3,6 +3,7 @@ package com.onlineshop.project1.controller;
 import com.onlineshop.project1.HelloApplication;
 import com.onlineshop.project1.entity.Customer;
 import com.onlineshop.project1.repository.CustomerRepository;
+import com.onlineshop.project1.util.ExceptionHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,6 +15,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+import java.net.ConnectException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,23 +104,32 @@ public class CustomerController {
             return;
         }
 
-        Customer customer = customerRepository.findById(customerIdInt.get());
+        try{
+            Customer customer = customerRepository.findById(customerIdInt.get());
 
-        if (customer == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(String.format("There is no such a user in the system with the id: %s", customerId));
-            alert.show();
-            return;
+
+
+            if (customer == null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText(String.format("There is no such a user in the system with the id: %s", customerId));
+                alert.show();
+                return;
+            }
+
+            boolean isSuccess = customerRepository.deleteCustomerById(customerIdInt.get());
+
+            if (isSuccess) {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText(String.format("User with the id: %s has been deleted successfully.", customerId));
+                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+            }
+        }catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
-
-        boolean isSuccess = customerRepository.deleteCustomerById(customerIdInt.get());
-
-        if (isSuccess) {
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText(String.format("User with the id: %s has been deleted successfully.", customerId));
-            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
 
     }
@@ -143,18 +155,25 @@ public class CustomerController {
         if(customerIdInt.isEmpty()){    // it is gonna stop if NumberOfException is thrown inside the convertCustomerIdToInteger function.
             return;
         }
+        try{
+            Customer customer = customerRepository.findById(customerIdInt.get());
 
-        Customer customer = customerRepository.findById(customerIdInt.get());
-
-        if (customer == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(String.format("There is no customer with the id: %s.",customerId));
-            alert.show();
-        } else {
-            nameText.setText(customer.getCustomerName());
-            addressText.setText(customer.getCustomerAddress());
-            telephoneText.setText(customer.getCustomerPhoneNumber());
+            if (customer == null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText(String.format("There is no customer with the id: %s.",customerId));
+                alert.show();
+            } else {
+                nameText.setText(customer.getCustomerName());
+                addressText.setText(customer.getCustomerAddress());
+                telephoneText.setText(customer.getCustomerPhoneNumber());
+            }
+        }catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
+        }
+
     }
 
 
@@ -195,38 +214,46 @@ public class CustomerController {
             return;
         }
 
-        Customer existsCustomer = customerRepository.findById(customerIdInt.get());
+        try {
+            Customer existsCustomer = customerRepository.findById(customerIdInt.get());
 
-        if (existsCustomer != null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(String.format("There is already a customer with the Id: %s in the system.",customerId));
-            alert.show();
-            return;
+            if (existsCustomer != null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText(String.format("There is already a customer with the Id: %s in the system.", customerId));
+                alert.show();
+                return;
+            }
+
+            boolean isValid = validateInputValues(
+                    customerId,
+                    customerName,
+                    customerAddress,
+                    customerPhoneNumber,
+                    false
+            );
+            if (!isValid) return;    //If validation exception occurred then stop.
+
+            boolean isSuccess = customerRepository
+                    .saveCustomer(
+                            customerIdInt.get(),
+                            customerName,
+                            customerAddress,
+                            customerPhoneNumber
+                    );
+
+            if (isSuccess) {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText("User has been updated successfully.");
+                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+            }
         }
-
-        boolean isValid = validateInputValues(
-                customerId,
-                customerName,
-                customerAddress,
-                customerPhoneNumber,
-                false
-        );
-        if(!isValid) return;    //If validation exception occurred then stop.
-
-        boolean isSuccess = customerRepository
-                .saveCustomer(
-                        customerIdInt.get(),
-                        customerName,
-                        customerAddress,
-                        customerPhoneNumber
-                );
-
-        if (isSuccess) {
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("User has been updated successfully.");
-            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
+        catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
+        }
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
 
     }
@@ -251,57 +278,63 @@ public class CustomerController {
         if(customerIdInt.isEmpty()){    // stop if NumberOfException is thrown inside the convertCustomerIdToInteger function.
             return;
         }
+        try {
+            Customer existsCustomer = customerRepository.findById(customerIdInt.get());
 
-        Customer existsCustomer = customerRepository.findById(customerIdInt.get());
+            if (existsCustomer == null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText(String.format("There is no such a customer with the Id: %s in the system.", customerId));
+                alert.show();
+                return;
+            }
 
-        if (existsCustomer == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText(String.format("There is no such a customer with the Id: %s in the system.",customerId));
-            alert.show();
-            return;
+            boolean isValid = validateInputValues(
+                    customerId,
+                    newCustomerName,
+                    newCustomerAddress,
+                    newCustomerPhoneNumber,
+                    true
+            );
+            if (!isValid) return;    // If validation exception occurred then stop.
+
+
+            boolean isChanged = hasCustomerDetailsChanged(
+                    existsCustomer,
+                    newCustomerName,
+                    newCustomerAddress,
+                    newCustomerPhoneNumber
+            );
+
+            if (!isChanged) {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText("User is already Up-to-date. Please enter new information.");
+                successAlert.getDialogPane().setStyle("-fx-background-color: #0859c5;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+                return;
+            }
+
+
+            boolean isSuccess = customerRepository
+                    .updateCustomer(
+                            customerIdInt.get(),
+                            newCustomerName,
+                            newCustomerAddress,
+                            newCustomerPhoneNumber
+                    );
+
+            if (isSuccess) {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setContentText("User has been updated successfully.");
+                successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
+                successAlert.getDialogPane().setPrefSize(400, 150);
+                successAlert.show();
+            }
+        }catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
-
-        boolean isValid = validateInputValues(
-                customerId,
-                newCustomerName,
-                newCustomerAddress,
-                newCustomerPhoneNumber,
-                true
-        );
-        if(!isValid) return;    // If validation exception occurred then stop.
-
-
-        boolean isChanged = hasCustomerDetailsChanged(
-                        existsCustomer,
-                        newCustomerName,
-                        newCustomerAddress,
-                        newCustomerPhoneNumber
-        );
-
-        if(!isChanged){
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("User is already Up-to-date. Please enter new information.");
-            successAlert.getDialogPane().setStyle("-fx-background-color: #0859c5;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
-            return;
-        }
-
-
-        boolean isSuccess = customerRepository
-                .updateCustomer(
-                        customerIdInt.get(),
-                        newCustomerName,
-                        newCustomerAddress,
-                        newCustomerPhoneNumber
-                );
-
-        if (isSuccess) {
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setContentText("User has been updated successfully.");
-            successAlert.getDialogPane().setStyle("-fx-background-color: #06b306;");
-            successAlert.getDialogPane().setPrefSize(400, 150);
-            successAlert.show();
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
 
     }
@@ -329,27 +362,35 @@ public class CustomerController {
             errorMessages.append("Phone Number should be in +90-xxx-xxx-xxxx and cannot be empty!\n");
         }
 
-        List<String> existsPhoneNumbers = customerRepository.getAllCustomerPhoneNumbers();
+        try {
 
-        if (isUpdate) {
-            int customerIdInt = convertCustomerIdToInteger(customerId).get();
-            Customer repoCustomer = customerRepository.findById(customerIdInt);
-            existsPhoneNumbers.remove(repoCustomer.getCustomerPhoneNumber());
+            List<String> existsPhoneNumbers = customerRepository.getAllCustomerPhoneNumbers();
+
+            if (isUpdate) {
+                int customerIdInt = convertCustomerIdToInteger(customerId).get();
+                Customer repoCustomer = customerRepository.findById(customerIdInt);
+                existsPhoneNumbers.remove(repoCustomer.getCustomerPhoneNumber());
+            }
+
+            boolean phoneExists = existsPhoneNumbers.stream()
+                    .anyMatch(phone -> phone.equals(customerPhoneNumber));
+
+            if (phoneExists) {
+                errorMessages.append("Phone Number already exists in the database!\n");
+            }
+
+            if (!errorMessages.isEmpty()) {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Error!");
+                errorAlert.setContentText(errorMessages.toString());
+                errorAlert.showAndWait();
+                return false;
+            }
+        }catch (SQLException e){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
-
-        boolean phoneExists = existsPhoneNumbers.stream()
-                .anyMatch(phone -> phone.equals(customerPhoneNumber));
-
-        if (phoneExists) {
-            errorMessages.append("Phone Number already exists in the database!\n");
-        }
-
-        if (!errorMessages.isEmpty()) {
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error!");
-            errorAlert.setContentText(errorMessages.toString());
-            errorAlert.showAndWait();
-            return false;
+        catch (ConnectException e ){
+            ExceptionHandler.handleException(e,e.getMessage());
         }
         return true;
     }
