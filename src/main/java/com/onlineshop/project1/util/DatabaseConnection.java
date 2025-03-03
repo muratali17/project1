@@ -1,5 +1,6 @@
 package com.onlineshop.project1.util;
 
+import java.net.ConnectException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -12,7 +13,7 @@ public class DatabaseConnection {
     private static final String DB_USER = "postgres";
     private static final String DB_PASS = "123456789";
 
-    public static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws ConnectException, SQLException {
         if (connection == null || connection.isClosed()) {
             try {
                 Class.forName(DB_DRIVER);
@@ -20,9 +21,8 @@ public class DatabaseConnection {
                         DB_URL,
                         DB_USER,
                         DB_PASS);
-            } catch (ClassNotFoundException | SQLException e) {
-                e.printStackTrace();
-                throw new SQLException("Failed to create the database connection.", e);
+            } catch (ClassNotFoundException | SQLException  e) {
+                throw new ConnectException("Failed to create the database connection.");
             }
         }
         return connection;
@@ -36,7 +36,7 @@ public class DatabaseConnection {
                 connection.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            ExceptionHandler.handleException(e,"Failed to close the database connection.");
         }
     }
 
