@@ -70,6 +70,9 @@ public class ProductController {
     @FXML
     private Button customerBtn;
 
+    @FXML
+    private Button clearBtn;
+
     private final ProductRepository productRepository = new ProductRepository();
 
     @FXML
@@ -312,6 +315,14 @@ public class ProductController {
         newStage.setTitle("Customer View");
 
         newStage.show();
+    }
+
+    @FXML
+    void onClear(ActionEvent event) {
+        productIdText.clear();
+        nameText.clear();
+        supplierText.clear();
+        priceText.clear();
     }
 
 

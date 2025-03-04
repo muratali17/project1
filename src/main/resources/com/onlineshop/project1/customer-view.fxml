@@ -8,7 +8,7 @@
 
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="533.0" prefWidth="800.0" style="-fx-background-color: lightgray;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.onlineshop.project1.controller.CustomerController">
     <children>
-        <Label fx:id="customerIdLabel" layoutX="117.0" layoutY="120.0" prefHeight="49.0" prefWidth="100.0" text="Customer Id">
+        <Label fx:id="customerIdLabel" layoutX="117.0" layoutY="120.0" prefHeight="49.0" prefWidth="110.0" text="Customer Id">
             <font>
                 <Font name="System Bold" size="18.0" />
             </font></Label>
@@ -49,35 +49,40 @@
                 <Font size="16.0" />
             </font>
         </TextField>
-        <Button fx:id="saveBtn" layoutX="191.0" layoutY="453.0" prefHeight="33.0" prefWidth="80.0" mnemonicParsing="false" onAction="#onSave" text="Save">
+        <Button fx:id="saveBtn" layoutX="191.0" layoutY="453.0" mnemonicParsing="false" onAction="#onSave" prefHeight="33.0" prefWidth="80.0" text="Save">
             <font>
                 <Font size="16.0" />
             </font>
         </Button>
-        <Button fx:id="updateBtn" layoutX="291.0" layoutY="453.0" prefHeight="33.0" prefWidth="80.0" mnemonicParsing="false" onAction="#onUpdate" text="Update">
+        <Button fx:id="updateBtn" layoutX="291.0" layoutY="453.0" mnemonicParsing="false" onAction="#onUpdate" prefHeight="33.0" prefWidth="80.0" text="Update">
             <font>
                 <Font size="16.0" />
             </font>
         </Button>
-        <Button fx:id="deleteBtn" layoutX="391.0" layoutY="453.0" prefHeight="33.0" prefWidth="80.0" mnemonicParsing="false" onAction="#onDelete" text="Delete">
+        <Button fx:id="deleteBtn" layoutX="391.0" layoutY="453.0" mnemonicParsing="false" onAction="#onDelete" prefHeight="33.0" prefWidth="80.0" text="Delete">
             <font>
                 <Font size="16.0" />
             </font>
         </Button>
-        <Button fx:id="closeBtn" layoutX="491.0" layoutY="453.0" prefHeight="33.0" prefWidth="80.0" mnemonicParsing="false" onAction="#onClose" text="Close">
+        <Button fx:id="closeBtn" layoutX="491.0" layoutY="453.0" mnemonicParsing="false" onAction="#onClose" prefHeight="33.0" prefWidth="80.0" text="Close">
             <font>
                 <Font size="16.0" />
             </font>
         </Button>
-        <Button fx:id="fetchBtn" layoutX="637.0" layoutY="128.0" prefHeight="33.0" prefWidth="80.0" mnemonicParsing="false" onAction="#onFetch" text="Fetch">
+        <Button fx:id="fetchBtn" layoutX="637.0" layoutY="128.0" mnemonicParsing="false" onAction="#onFetch" prefHeight="33.0" prefWidth="80.0" text="Fetch">
             <font>
                 <Font size="16.0" />
             </font>
         </Button>
-        <Button fx:id="productBtn" layoutX="591.0" layoutY="453.0" prefHeight="33.0" prefWidth="80.0" mnemonicParsing="false" onAction="#onProduct" text="Product">
+        <Button fx:id="productBtn" layoutX="591.0" layoutY="453.0" mnemonicParsing="false" onAction="#onProduct" prefHeight="33.0" prefWidth="80.0" text="Product">
             <font>
                 <Font size="16.0" />
             </font>
         </Button>
+      <Button fx:id="clearBtn" layoutX="637.0" layoutY="191.0" mnemonicParsing="false" onAction="#onClear" prefHeight="32.0" prefWidth="80.0" text="Clear">
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Button>
     </children>
 </Pane>
