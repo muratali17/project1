@@ -68,6 +68,11 @@ public class CustomerController {
     @FXML
     private Button updateBtn;
 
+    @FXML
+    private Button clearBtn;
+
+
+
 
     private final CustomerRepository customerRepository = new CustomerRepository();
 
@@ -340,6 +345,14 @@ public class CustomerController {
 
     }
 
+    @FXML
+    void onClear(ActionEvent event) {
+        customerIdText.clear();
+        nameText.clear();
+        addressText.clear();
+        telephoneText.clear();
+    }
+
 
     /***
      * Kullanıcı girdiği bilgileri doğrular ve hata mesajlarını toplar.
@@ -431,8 +444,8 @@ public class CustomerController {
         try {
             return Optional.of(Integer.parseInt(customerIdString));
         } catch (NumberFormatException ex) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Customer Id must be integer!");
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText("ID value must be entered!");
             alert.show();
             return Optional.empty();
         }
